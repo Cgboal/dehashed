@@ -1,0 +1,60 @@
+* Overview
+
+This respository provides both a CLI tool for querying Dehashed, and a library which may be by other projects to query the Dehashed API natively within Go. 
+
+* CLI usage 
+
+** Installation
+To install the CLI tool, simply run the following command. Note that you must have a $GOPATH set. 
+#+begin_src bash
+go get gitlab.com/cgboal/dehashed
+#+end_src
+
+** Usage
+The CLI tool requires both a username and an API key to function. Both of these pieces of information are specified via environment variables.  
+
+These environment variables can be set by exporting the appropriate key-value pairs, e.g. 
+
+#+begin_src bash
+  export DEHASHED_USERNAME=example.user@example.org
+  export DEHASHED_API_KEY=XXXXXXXXXXXXXXXXXXXXXX
+#+end_src
+
+These lines can be added to your ~/.zshrc, or ~/.bashrc files for persistence. 
+
+*** Command line options
+By default the CLI tool will output in the format  email:password. Supplying the flag `-oJ` will output in JSON instead. Furthermore, the CLI tool will only output results where a cleartext password was found by defualt, to view all results, use the -all flag.
+
+* Library usage
+
+** Getting started
+To import the library, add the following url to your imports:
+
+`gitlab.com/cgboal/dehashed/lib`
+
+Once imported, you can query the dehashed API as follows: 
+
+#+begin_src go
+    query := "onsecurity.co.uk"
+
+    results := dehashed.FetchAll(query)
+
+    for _, result := range results {
+        fmt.Printf("%s:%s", result.Email, result.Password)
+    }
+#+end_src 
+
+The struct used to represent dehashed results is as follows: 
+
+#+begin_src go
+type Entry struct {
+	Email string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Hash string `json:"hashed_password"`
+	Name string `json:"name"`
+	Source string `json:"obtained_from"`
+}
+#+end_src
+
+
