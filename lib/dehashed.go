@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"fmt"
 	"encoding/json"
+	"errors"
 )
 
 type Results struct {
@@ -39,6 +40,7 @@ func FetchPage(query string, page_id int) []Entry {
 }
 
 func FilterHasPassword(entries []Entry) []Entry {
+
 	var filtered_entries []Entry
 	for _, entry := range entries {
 		if entry.Password != "" {
@@ -49,7 +51,7 @@ func FilterHasPassword(entries []Entry) []Entry {
 	return filtered_entries
 }
 
-func FetchAll(query string) []Entry {
+func FetchAll(query string) ([]Entry, error) {
 	var entries []Entry
 
 	page_id := 0
@@ -62,7 +64,10 @@ func FetchAll(query string) []Entry {
 		entries = append(entries, new_entries...)
 		page_id++
 	}
-	return entries
+	if len(entries) != 0 {
+		return entries, nil
+	}
+	return entries, errors.New("No results returned from Dehashed")
 }
 
 
@@ -70,7 +75,7 @@ func QueryDehashed(query string) []byte {
 	username, api_key := getCredentials()
 
 	client := http.Client{}
-	req, err := http.NewRequest("GET", "https://dehashed.com/search?query=" + query, nil)
+	req, err := http.NewRequest("GET", "https://api.dehashed.com/search?query=" + query, nil)
 	req.SetBasicAuth(username, api_key)
 	req.Header.Set("Accept", "application/json")
 	resp, err := client.Do(req)

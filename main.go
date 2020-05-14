@@ -16,7 +16,7 @@ func main() {
 
 	query := flag.Arg(0)
 
-	results := dehashed.FetchAll(query)
+	results := dehashed.FetchPage(query, 0)
 	if *show_all == false {
 		results = dehashed.FilterHasPassword(results)
 	}
