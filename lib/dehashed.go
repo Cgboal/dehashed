@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"log"
 	"io/ioutil"
-	"fmt"
 	"encoding/json"
-	"errors"
 )
 
 type Results struct {
@@ -32,9 +30,8 @@ func ParseDehashedJson(json_data []byte) []Entry {
 
 }
 
-func FetchPage(query string, page_id int) []Entry {
-	query_string := fmt.Sprintf("%s&page=%d", query, page_id)
-	page_json := QueryDehashed(query_string)
+func FetchPage(query string) []Entry {
+	page_json := QueryDehashed(query)
 	entries := ParseDehashedJson(page_json)
 	return entries
 }
@@ -50,26 +47,6 @@ func FilterHasPassword(entries []Entry) []Entry {
 
 	return filtered_entries
 }
-
-func FetchAll(query string) ([]Entry, error) {
-	var entries []Entry
-
-	page_id := 0
-	for {
-		new_entries := FetchPage(query, page_id)
-		if len(new_entries) == 0 {
-			break
-		}
-
-		entries = append(entries, new_entries...)
-		page_id++
-	}
-	if len(entries) != 0 {
-		return entries, nil
-	}
-	return entries, errors.New("No results returned from Dehashed")
-}
-
 
 func QueryDehashed(query string) []byte {
 	username, api_key := getCredentials()
