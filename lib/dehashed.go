@@ -1,43 +1,52 @@
 package dehashed
 
 import (
-	"os"
-	"net/http"
-	"log"
-	"io/ioutil"
 	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 )
 
 type Results struct {
-	Entries []Entry
-}
-type Entry struct {
-	Email string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Hash string `json:"hashed_password"`
-	Name string `json:"name"`
-	Source string `json:"obtained_from"`
+	Entries []Entry `json:"entries"`
+	Success bool    `json:"success"`
+	Message string  `json:"message"`
 }
 
-func ParseDehashedJson(json_data []byte) []Entry {
+type Entry struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Hash     string `json:"hashed_password"`
+	Name     string `json:"name"`
+	Source   string `json:"obtained_from"`
+}
+
+func ParseDehashedJson(json_data []byte) *Results {
 	results := &Results{}
 	err := json.Unmarshal(json_data, results)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return results.Entries
+	return results
 
 }
 
-func FetchPage(query string) []Entry {
+func FetchResults(query string) ([]Entry, error) {
+	var entries []Entry
 	page_json := QueryDehashed(query)
-	entries := ParseDehashedJson(page_json)
-	return entries
+	results := ParseDehashedJson(page_json)
+	if !results.Success {
+		return entries, errors.New(results.Message)
+	}
+
+	entries = results.Entries
+	return entries, nil
 }
 
 func FilterHasPassword(entries []Entry) []Entry {
-
 	var filtered_entries []Entry
 	for _, entry := range entries {
 		if entry.Password != "" {
@@ -52,7 +61,7 @@ func QueryDehashed(query string) []byte {
 	username, api_key := getCredentials()
 
 	client := http.Client{}
-	req, err := http.NewRequest("GET", "https://api.dehashed.com/search?query=" + query, nil)
+	req, err := http.NewRequest("GET", "https://api.dehashed.com/search?query="+query, nil)
 	req.SetBasicAuth(username, api_key)
 	req.Header.Set("Accept", "application/json")
 	resp, err := client.Do(req)

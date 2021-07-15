@@ -1,9 +1,10 @@
 package main
 
 import (
-	"gitlab.com/cgboal/dehashed/lib"
+	"github.com/cgboal/dehashed/lib"
 	"flag"
 	"fmt"
+	"log"
 	"encoding/json"
 )
 
@@ -16,7 +17,10 @@ func main() {
 
 	query := flag.Arg(0)
 
-	results := dehashed.FetchPage(query)
+	results, err := dehashed.FetchResults(query)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if *show_all == false {
 		results = dehashed.FilterHasPassword(results)
 	}
